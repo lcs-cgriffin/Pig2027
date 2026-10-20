@@ -12,7 +12,8 @@
 //  WHAT IT DOES NOT DO YET
 //  Nobody can win! The scores just keep going up.
 //  In the real game, the first player to reach 100 points wins.
-//
+//  NEW IN LESSON 5
+//  The first player to bank 100 points or more wins.
 
 import SwiftUI
 
@@ -20,6 +21,9 @@ import SwiftUI
 // TRY: Change these two colours. Try Color.purple, Color.green or Color.pink.
 let playerOneColor: Color = Color.blue
 let playerTwoColor: Color = Color.orange
+
+// The first player to reach this score wins.
+let winningScore: Int = 100
 
 // The game itself: what it remembers, what it shows on the screen,
 // and what it does when you click a button.
@@ -52,6 +56,9 @@ struct PigView: View {
 
     // A message that tells the players what just happened.
     @State var message: String = "Player 1 goes first. Click Roll to start."
+    
+    // Becomes true when somebody wins.
+    @State var gameIsOver: Bool = false
 
     // MARK: - Computed properties
 
@@ -95,11 +102,18 @@ struct PigView: View {
 
             Spacer()
 
-            // Whose turn is it?
-            Text("Player \(currentPlayer), your turn")
-                .font(.title)
-                .bold()
-                .foregroundStyle(turnColor)
+            // Say whose turn it is, or that the game is over.
+            if !gameIsOver {
+                Text("Player \(currentPlayer), your turn")
+                    .font(.title)
+                    .bold()
+                    .foregroundStyle(turnColor)
+            } else {
+                Text("Game over")
+                    .font(.title)
+                    .bold()
+                    .foregroundStyle(turnColor)
+            }
 
             // The die.
             // TRY: Change the size of the die from 120 to something bigger or smaller.
@@ -137,6 +151,8 @@ struct PigView: View {
             .bold()
             .controlSize(.large)
             .tint(turnColor)
+// Nobody can roll or hold once the game is over.
+            .disabled(gameIsOver)
 
             Button("New Game") {
                 startNewGame()
@@ -180,11 +196,21 @@ struct PigView: View {
         } else {
             playerTwoScore += turnTotal
         }
-        message = "Player \(currentPlayer) banked \(turnTotal) points."
-        turnTotal = 0
-        switchPlayer()
+ 
+        // Has either player reached the winning score?
+        let someoneHasWon: Bool = playerOneScore >= winningScore || playerTwoScore >= winningScore
+ 
+        if someoneHasWon {
+            message = "Player \(currentPlayer) wins! Click New Game to play again."
+            dieSymbol = "trophy.fill"
+            turnTotal = 0
+            gameIsOver = true
+        } else {
+            message = "Player \(currentPlayer) banked \(turnTotal) points."
+            turnTotal = 0
+            switchPlayer()
+        }
     }
-
     // Passes the turn to the other player.
     func switchPlayer() {
            rollsThisTurn = 0
@@ -208,6 +234,7 @@ struct PigView: View {
         rollsThisTurn = 0
         dieSymbol = "questionmark.square.fill"
         message = "Player 1 goes first. Click Roll to start."
+        gameIsOver = false
     }
 }
 
